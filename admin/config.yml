@@ -1,7 +1,7 @@
 # Settings for the /admin page.
 backend:
   name: github
-  repo: YOUR-GITHUB-USERNAME/YOUR-REPO-NAME   # <-- change this one line (example: janedoe/portfolio)
+  repo: SalemKFox/Portfolio   # <-- change this one line (example: janedoe/portfolio)
   branch: main
 
 # Uploaded pictures are saved in the "uploads" folder of your repository.
