@@ -412,6 +412,13 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ---------- real images (from the admin panel) ---------- */
+.tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.lb-card { width: auto; max-width: min(900px, calc(100vw - 32px)); aspect-ratio: auto; display: block; background: var(--panel-solid); }
+.lb-card img { display: block; max-width: min(900px, calc(100vw - 34px)); max-height: calc(100vh - 210px); min-width: min(420px, calc(100vw - 34px)); object-fit: contain; margin-inline: auto; }
+.lb-card figcaption { position: static; }
+.grid-note { margin: 0; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -530,7 +537,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Focused image" hidden>
   <button type="button" class="lb-close" id="lb-close" aria-label="Close">&times;</button>
   <figure class="lb-card" id="lb-card">
-    <svg viewBox="0 0 100 100" id="lb-art" aria-hidden="true"></svg>
+    <img id="lb-img" alt="">
     <figcaption><b id="lb-title"></b><span id="lb-cat"></span></figcaption>
   </figure>
 </div>
@@ -582,56 +589,25 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
   layer('#1d2552', 90, 210, null, 0);
   layer('#0a0e22', 50, 150, '#ffd98a', 0.22);
 
-  // ---- placeholder work ----
-  // Each category gets its own simple shape so filtering is easy to see.
-  var SHAPES = {
-    square:   '<rect x="22" y="22" width="56" height="56" rx="3"/>',
-    circle:   '<circle cx="50" cy="50" r="31"/>',
-    triangle: '<polygon points="50,16 86,80 14,80"/>',
-    star:     '<polygon points="50,12 61,40 91,40 66,58 76,88 50,70 24,88 34,58 9,40 39,40"/>'
-  };
-  var work = [
-    { t: 'Red square', c: 'Gallery', s: 'square', h: 350 },
-    { t: 'Orange square', c: 'Gallery', s: 'square', h: 25 },
-    { t: 'Yellow square', c: 'Gallery', s: 'square', h: 50 },
-    { t: 'Lime square', c: 'Gallery', s: 'square', h: 95 },
-    { t: 'Green circle', c: 'Animation', s: 'circle', h: 135 },
-    { t: 'Teal circle', c: 'Animation', s: 'circle', h: 175 },
-    { t: 'Blue circle', c: 'Animation', s: 'circle', h: 215 },
-    { t: 'Purple triangle', c: 'Design', s: 'triangle', h: 270 },
-    { t: 'Pink triangle', c: 'Design', s: 'triangle', h: 320 },
-    { t: 'Magenta triangle', c: 'Design', s: 'triangle', h: 300 }
-  ];
-  var cats = ['All'];
-  work.forEach(function (w) { if (cats.indexOf(w.c) < 0) cats.push(w.c); });
-
+  // ---- gallery: loaded from gallery.json, which the /admin page edits ----
+  var CATS = ['Gallery', 'Animation', 'Design'];
   var grid = document.getElementById('grid');
   var menu = document.getElementById('menu');
   var title = document.getElementById('content-title');
+  var work = [];
+  var current = 'All';
+  var failed = false;
 
-  work.forEach(function (w) {
-    var f = document.createElement('figure');
-    f.className = 'tile';
-    f.dataset.cat = w.c;
-    f.style.setProperty('--h', w.h);
-    f.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true">' + SHAPES[w.s] + '</svg>' +
-                  '<figcaption><b></b><span></span></figcaption>';
-    f.querySelector('b').textContent = w.t;
-    f.querySelector('span').textContent = w.c;
-    f.tabIndex = 0;
-    f.setAttribute('role', 'button');
-    f.setAttribute('aria-label', 'Focus on ' + w.t);
-    f.addEventListener('click', function () { openLightbox(w, f); });
-    f.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(w, f); }
-    });
-    grid.appendChild(f);
-  });
+  var note = document.createElement('p');
+  note.className = 'grid-note';
+  note.hidden = true;
+  grid.parentNode.insertBefore(note, grid.nextSibling);
+
+  function hueFor(s) { var n = 0; for (var i = 0; i < s.length; i++) n = (n * 31 + s.charCodeAt(i)) % 360; return n; }
 
   // ---- focus view (lightbox) ----
   var lb = document.getElementById('lightbox');
-  var lbCard = document.getElementById('lb-card');
-  var lbArt = document.getElementById('lb-art');
+  var lbImg = document.getElementById('lb-img');
   var lbTitle = document.getElementById('lb-title');
   var lbCat = document.getElementById('lb-cat');
   var lbClose = document.getElementById('lb-close');
@@ -639,8 +615,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
 
   function openLightbox(w, tile) {
     lastTile = tile;
-    lbCard.style.setProperty('--h', w.h);
-    lbArt.innerHTML = SHAPES[w.s];
+    lbImg.src = w.image;
+    lbImg.alt = w.t;
     lbTitle.textContent = w.t;
     lbCat.textContent = w.c;
     lb.hidden = false;
@@ -662,28 +638,78 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
   }
 
   function choose(cat) {
+    current = cat;
+    var visible = 0;
     Array.prototype.forEach.call(grid.children, function (t) {
-      t.hidden = !(cat === 'All' || t.dataset.cat === cat);
+      var show = (cat === 'All' || t.dataset.cat === cat);
+      t.hidden = !show;
+      if (show) visible++;
     });
     Array.prototype.forEach.call(menu.querySelectorAll('button'), function (b) {
       b.setAttribute('aria-pressed', b.dataset.cat === cat ? 'true' : 'false');
     });
     title.textContent = cat === 'All' ? 'All work' : cat;
+    note.hidden = visible > 0;
+    note.textContent = failed ? 'The gallery could not be loaded. Try refreshing the page.' : 'Nothing here yet.';
   }
 
-  cats.forEach(function (c) {
-    var li = document.createElement('li');
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.dataset.cat = c;
-    b.innerHTML = '<span></span><span class="count"></span>';
-    b.children[0].textContent = c;
-    b.children[1].textContent = count(c);
-    b.addEventListener('click', function () { choose(c); });
-    li.appendChild(b);
-    menu.appendChild(li);
-  });
-  choose('All');
+  function buildMenu() {
+    menu.innerHTML = '';
+    ['All'].concat(CATS).forEach(function (c) {
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.cat = c;
+      b.innerHTML = '<span></span><span class="count"></span>';
+      b.children[0].textContent = c;
+      b.children[1].textContent = count(c);
+      b.addEventListener('click', function () { choose(c); });
+      li.appendChild(b);
+      menu.appendChild(li);
+    });
+  }
+
+  function buildGrid() {
+    grid.innerHTML = '';
+    work.forEach(function (w) {
+      var f = document.createElement('figure');
+      f.className = 'tile';
+      f.dataset.cat = w.c;
+      f.style.setProperty('--h', hueFor(w.t));
+      var im = document.createElement('img');
+      im.src = w.image;
+      im.alt = '';
+      im.loading = 'lazy';
+      im.addEventListener('error', function () { im.remove(); });
+      f.appendChild(im);
+      var cap = document.createElement('figcaption');
+      cap.innerHTML = '<b></b><span></span>';
+      cap.querySelector('b').textContent = w.t;
+      cap.querySelector('span').textContent = w.c;
+      f.appendChild(cap);
+      f.tabIndex = 0;
+      f.setAttribute('role', 'button');
+      f.setAttribute('aria-label', 'Focus on ' + w.t);
+      f.addEventListener('click', function () { openLightbox(w, f); });
+      f.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(w, f); }
+      });
+      grid.appendChild(f);
+    });
+  }
+
+  function renderGallery() { buildMenu(); buildGrid(); choose(current); }
+  renderGallery();
+
+  fetch('gallery.json', { cache: 'no-cache' })
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function (data) {
+      work = (data.items || []).filter(function (it) { return it && it.title && it.image; }).map(function (it) {
+        return { t: String(it.title), c: String(it.category || ''), image: String(it.image) };
+      });
+      renderGallery();
+    })
+    .catch(function () { failed = true; renderGallery(); });
 
   // ---- page switching from the header links (uses the #hash) ----
   var views = Array.prototype.slice.call(document.querySelectorAll('[data-view]'));

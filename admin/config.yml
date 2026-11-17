@@ -1,0 +1,27 @@
+# Settings for the /admin page.
+backend:
+  name: github
+  repo: YOUR-GITHUB-USERNAME/YOUR-REPO-NAME   # <-- change this one line (example: janedoe/portfolio)
+  branch: main
+
+# Uploaded pictures are saved in the "uploads" folder of your repository.
+media_folder: "uploads"
+public_folder: "/uploads"
+
+collections:
+  - name: "gallery"
+    label: "Gallery"
+    files:
+      - name: "work"
+        label: "All work"
+        file: "gallery.json"
+        fields:
+          - label: "Work"
+            name: "items"
+            widget: "list"
+            label_singular: "piece"
+            summary: "{{fields.category}} - {{fields.title}}"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Category", name: "category", widget: "select", options: ["Gallery", "Animation", "Design"] }
+              - { label: "Image or animation (PNG, JPG, GIF, WebP)", name: "image", widget: "image" }

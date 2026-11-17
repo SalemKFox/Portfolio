@@ -1,0 +1,54 @@
+{
+  "items": [
+    {
+      "title": "Red square",
+      "category": "Gallery",
+      "image": "/uploads/red-square.svg"
+    },
+    {
+      "title": "Orange square",
+      "category": "Gallery",
+      "image": "/uploads/orange-square.svg"
+    },
+    {
+      "title": "Yellow square",
+      "category": "Gallery",
+      "image": "/uploads/yellow-square.svg"
+    },
+    {
+      "title": "Lime square",
+      "category": "Gallery",
+      "image": "/uploads/lime-square.svg"
+    },
+    {
+      "title": "Green circle",
+      "category": "Animation",
+      "image": "/uploads/green-circle.svg"
+    },
+    {
+      "title": "Teal circle",
+      "category": "Animation",
+      "image": "/uploads/teal-circle.svg"
+    },
+    {
+      "title": "Blue circle",
+      "category": "Animation",
+      "image": "/uploads/blue-circle.svg"
+    },
+    {
+      "title": "Purple triangle",
+      "category": "Design",
+      "image": "/uploads/purple-triangle.svg"
+    },
+    {
+      "title": "Pink triangle",
+      "category": "Design",
+      "image": "/uploads/pink-triangle.svg"
+    },
+    {
+      "title": "Magenta triangle",
+      "category": "Design",
+      "image": "/uploads/magenta-triangle.svg"
+    }
+  ]
+}
