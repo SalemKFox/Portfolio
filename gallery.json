@@ -1,11 +1,6 @@
 {
   "items": [
     {
-      "title": "Red square",
-      "category": "Gallery",
-      "image": "/uploads/red-square.svg"
-    },
-    {
       "title": "Orange square",
       "category": "Gallery",
       "image": "/uploads/orange-square.svg"
@@ -49,6 +44,11 @@
       "title": "Magenta triangle",
       "category": "Design",
       "image": "/uploads/magenta-triangle.svg"
+    },
+    {
+      "title": "Blabla",
+      "category": "Gallery",
+      "image": "/uploads/1564282108367.png"
     }
   ]
 }
