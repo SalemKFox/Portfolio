@@ -24,6 +24,41 @@
       "title": "Armanzo Beans (Final) ",
       "category": "Design",
       "image": "/uploads/armanzo-beans.jpeg"
+    },
+    {
+      "category": "Gallery",
+      "title": "Character Profile: Fox",
+      "image": "/uploads/skfdesc.png"
+    },
+    {
+      "title": "Character Profile: Candy",
+      "category": "Gallery",
+      "image": "/uploads/candydesc.png"
+    },
+    {
+      "title": "Character Profile: Ray",
+      "image": "/uploads/raydesc.png",
+      "category": "Gallery"
+    },
+    {
+      "title": "Avatar Reanimated Panning Shot",
+      "category": "Gallery",
+      "image": "/uploads/pan-shot.png"
+    },
+    {
+      "title": "Character Concept: Skye",
+      "category": "Gallery",
+      "image": "/uploads/skye.png"
+    },
+    {
+      "title": "Wumpa \"Juice\"",
+      "category": "Gallery",
+      "image": "/uploads/ej_9mfhxyaev2us.jpg"
+    },
+    {
+      "image": "/uploads/ann-cover.png",
+      "title": "Assassinnation Nation Cover",
+      "category": "Gallery"
     }
   ]
 }
