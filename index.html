@@ -425,6 +425,13 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
 .lb-card img { display: block; max-width: min(900px, calc(100vw - 34px)); max-height: calc(100vh - 210px); min-width: min(420px, calc(100vw - 34px)); object-fit: contain; margin-inline: auto; }
 .lb-card figcaption { position: static; }
 .grid-note { margin: 0; color: var(--muted); }
+.tile .play { position: absolute; left: 50%; top: calc(50% - 20px); transform: translate(-50%, -50%); width: 56px; height: 56px; border-radius: 50%; background: rgba(8, 11, 26, 0.72); border: 2px solid rgba(255, 255, 255, 0.9); display: grid; place-items: center; pointer-events: none; transition: background 0.15s, border-color 0.15s; }
+.tile .play svg { width: 26px; height: 26px; fill: #fff; margin-left: 3px; stroke: none; filter: none; position: static; }
+.tile:hover .play, .tile:focus-visible .play { background: var(--accent); border-color: var(--accent); }
+.lb-video { position: relative; width: min(900px, calc(100vw - 34px)); aspect-ratio: 16 / 9; background: #000; }
+.lb-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.lb-video.is-link { aspect-ratio: auto; padding: 36px 20px; display: grid; place-items: center; text-align: center; background: var(--panel-solid); }
+.lb-video.is-link a { color: var(--moon); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -530,7 +537,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Focused image" hidden>
   <button type="button" class="lb-close" id="lb-close" aria-label="Close">&times;</button>
   <figure class="lb-card" id="lb-card">
-    <img id="lb-img" alt="">
+    <img id="lb-img" alt=""><div class="lb-video" id="lb-video" hidden></div>
     <figcaption><b id="lb-title"></b><span id="lb-cat"></span></figcaption>
   </figure>
 </div>
@@ -596,6 +603,44 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
   note.hidden = true;
   grid.parentNode.insertBefore(note, grid.nextSibling);
 
+  // Turns a pasted YouTube or Vimeo address into a safe embed address (built only from the video's id).
+  function parseVideo(raw) {
+    if (!raw) return null;
+    var u;
+    try { u = new URL(String(raw).trim()); } catch (e) { return { embed: null, url: null }; }
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return { embed: null, url: null };
+    var host = u.hostname.replace(/^(www|m)\./, '');
+    var parts = u.pathname.split('/').filter(Boolean);
+    var id = null;
+    if (host === 'youtu.be') id = parts[0];
+    else if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+      if (parts[0] === 'watch') id = u.searchParams.get('v');
+      else if (/^(embed|shorts|live|v)$/.test(parts[0] || '')) id = parts[1];
+    }
+    if (id && /^[A-Za-z0-9_-]{6,20}$/.test(id)) {
+      return {
+        embed: 'https://www.youtube-nocookie.com/embed/' + id + '?rel=0&playsinline=1&autoplay=1',
+        thumb: 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg',
+        url: u.href
+      };
+    }
+    var vid = null, hash = null;
+    if (host === 'player.vimeo.com') { vid = parts[1]; hash = u.searchParams.get('h'); }
+    else if (host === 'vimeo.com') {
+      for (var i = 0; i < parts.length; i++) {
+        if (/^\d+$/.test(parts[i])) { vid = parts[i]; if (/^[0-9a-f]{8,}$/.test(parts[i + 1] || '')) hash = parts[i + 1]; break; }
+      }
+    }
+    if (vid && /^\d+$/.test(vid)) {
+      return {
+        embed: 'https://player.vimeo.com/video/' + vid + '?autoplay=1&dnt=1' + (hash && /^[0-9a-f]+$/.test(hash) ? '&h=' + hash : ''),
+        thumb: null,
+        url: u.href
+      };
+    }
+    return { embed: null, url: u.href };   // some other site: offer a plain link
+  }
+
   function hueFor(s) { var n = 0; for (var i = 0; i < s.length; i++) n = (n * 31 + s.charCodeAt(i)) % 360; return n; }
 
   // ---- focus view (lightbox) ----
@@ -603,13 +648,42 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
   var lbImg = document.getElementById('lb-img');
   var lbTitle = document.getElementById('lb-title');
   var lbCat = document.getElementById('lb-cat');
+  var lbVideo = document.getElementById('lb-video');
   var lbClose = document.getElementById('lb-close');
   var lastTile = null;
 
   function openLightbox(w, tile) {
     lastTile = tile;
-    lbImg.src = w.image;
-    lbImg.alt = w.t;
+    lbVideo.innerHTML = '';
+    lbVideo.className = 'lb-video';
+    if (w.video) {
+      lbImg.hidden = true;
+      lbVideo.hidden = false;
+      if (w.video.embed) {
+        var fr = document.createElement('iframe');
+        fr.src = w.video.embed;
+        fr.title = w.t;
+        fr.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+        fr.allowFullscreen = true;
+        fr.referrerPolicy = 'strict-origin-when-cross-origin';
+        lbVideo.appendChild(fr);
+      } else {
+        lbVideo.className = 'lb-video is-link';
+        if (w.video.url) {
+          var a = document.createElement('a');
+          a.href = w.video.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+          a.textContent = 'Watch this video (opens in a new tab)';
+          lbVideo.appendChild(a);
+        } else {
+          lbVideo.textContent = 'This video link could not be read.';
+        }
+      }
+    } else {
+      lbVideo.hidden = true;
+      lbImg.hidden = false;
+      lbImg.src = w.image;
+      lbImg.alt = w.t;
+    }
     lbTitle.textContent = w.t;
     lbCat.textContent = w.c;
     lb.hidden = false;
@@ -619,6 +693,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
   function closeLightbox() {
     if (lb.hidden) return;
     lb.hidden = true;
+    lbVideo.innerHTML = '';   // removes the player so the video stops
     document.body.style.overflow = '';
     if (lastTile) lastTile.focus();
   }
@@ -669,12 +744,22 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
       f.className = 'tile';
       f.dataset.cat = w.c;
       f.style.setProperty('--h', hueFor(w.t));
-      var im = document.createElement('img');
-      im.src = w.image;
-      im.alt = '';
-      im.loading = 'lazy';
-      im.addEventListener('error', function () { im.remove(); });
-      f.appendChild(im);
+      var pic = w.image || (w.video && w.video.thumb) || '';
+      if (pic) {
+        var im = document.createElement('img');
+        im.src = pic;
+        im.alt = '';
+        im.loading = 'lazy';
+        im.addEventListener('error', function () { im.remove(); });
+        f.appendChild(im);
+      }
+      if (w.video) {
+        var pl = document.createElement('span');
+        pl.className = 'play';
+        pl.setAttribute('aria-hidden', 'true');
+        pl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+        f.appendChild(pl);
+      }
       var cap = document.createElement('figcaption');
       cap.innerHTML = '<b></b><span></span>';
       cap.querySelector('b').textContent = w.t;
@@ -682,7 +767,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
       f.appendChild(cap);
       f.tabIndex = 0;
       f.setAttribute('role', 'button');
-      f.setAttribute('aria-label', 'Focus on ' + w.t);
+      f.setAttribute('aria-label', (w.video ? 'Play ' : 'Focus on ') + w.t);
       f.addEventListener('click', function () { openLightbox(w, f); });
       f.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(w, f); }
@@ -697,8 +782,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--moon); outline-
   fetch('gallery.json', { cache: 'no-cache' })
     .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function (data) {
-      work = (data.items || []).filter(function (it) { return it && it.title && it.image; }).map(function (it) {
-        return { t: String(it.title), c: String(it.category || ''), image: String(it.image) };
+      work = (data.items || []).filter(function (it) { return it && it.title && (it.image || it.video); }).map(function (it) {
+        return { t: String(it.title), c: String(it.category || ''), image: it.image ? String(it.image) : '', video: parseVideo(it.video) };
       });
       renderGallery();
     })
