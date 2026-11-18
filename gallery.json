@@ -1,54 +1,29 @@
 {
   "items": [
     {
-      "title": "Orange square",
-      "category": "Gallery",
-      "image": "/uploads/orange-square.svg"
-    },
-    {
-      "title": "Yellow square",
-      "category": "Gallery",
-      "image": "/uploads/yellow-square.svg"
-    },
-    {
-      "title": "Lime square",
-      "category": "Gallery",
-      "image": "/uploads/lime-square.svg"
-    },
-    {
-      "title": "Green circle",
       "category": "Animation",
-      "image": "/uploads/green-circle.svg"
+      "title": "DustDevil ",
+      "image": "https://www.youtube.com/watch?v=gpVqtz9sRT0"
     },
     {
-      "title": "Teal circle",
       "category": "Animation",
-      "image": "/uploads/teal-circle.svg"
+      "title": "Sneakman and The Ruseman",
+      "image": "https://drive.google.com/drive/u/0/folders/1I-Vlb9uy2agLnCxCfuq8Fax0SSlkQZYq"
     },
     {
-      "title": "Blue circle",
-      "category": "Animation",
-      "image": "/uploads/blue-circle.svg"
-    },
-    {
-      "title": "Purple triangle",
       "category": "Design",
-      "image": "/uploads/purple-triangle.svg"
+      "title": "Armanzo Beans LogoV1",
+      "image": "/uploads/beans-logo.png"
     },
     {
-      "title": "Pink triangle",
+      "title": "Armanzo Beans V2",
       "category": "Design",
-      "image": "/uploads/pink-triangle.svg"
+      "image": "/uploads/beans-logo-3.png"
     },
     {
-      "title": "Magenta triangle",
+      "title": "Armanzo Beans (Final) ",
       "category": "Design",
-      "image": "/uploads/magenta-triangle.svg"
-    },
-    {
-      "title": "Blabla",
-      "category": "Gallery",
-      "image": "/uploads/1564282108367.png"
+      "image": "/uploads/armanzo-beans.jpeg"
     }
   ]
 }
