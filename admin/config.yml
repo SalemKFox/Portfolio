@@ -24,4 +24,5 @@ collections:
             fields:
               - { label: "Title", name: "title", widget: "string" }
               - { label: "Category", name: "category", widget: "select", options: ["Gallery", "Animation", "Design"] }
-              - { label: "Image or animation (PNG, JPG, GIF, WebP)", name: "image", widget: "image" }
+              - { label: "Thumbnail or picture (optional for videos)", name: "image", widget: "image", required: false }
+              - { label: "Video link (YouTube or Vimeo, optional)", name: "video", widget: "string", required: false, hint: "Paste the video's web address. The video must be Public or Unlisted." }
